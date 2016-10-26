@@ -1,0 +1,43 @@
+%\documentclass[nosymbols]{beamer} % Better in main.tex/Presentation.tex.
+%
+\usepackage[ngerman]{babel}		% German headings.
+\usepackage[T1]{fontenc}			% German typesetting.
+\usepackage[utf8]{inputenc} 		%Universal/Linux Kodierung
+%\usepackage[ansi]{inputenc} 		%Windows Kodierung
+%\usepackage[applemac]{inputenc}	%MacOS Kodierung
+%\usepackage[latin1]{inputenc} 		%Standart & Windows Kodierung
+%
+\usepackage{lmodern}				% Better font encoding.
+%\usepackage{verbatim} 				% Multiline Comments.
+\usepackage{amsmath, amsfonts, amssymb, amsxtra} % Mathematical symbols.
+\usepackage{bigints} % large integral signs
+%
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{subfigure}
+%
+\usepackage[style=authoryear,backend=bibtex]{biblatex}
+\addbibresource{bibliography/bibliography.bib}
+%
+\usepackage{chngcntr}
+\setbeamertemplate{caption}[numbered]
+\counterwithout{figure}{section}
+%
+\usepackage{tikz}
+\usetikzlibrary{trees}
+%
+\usepackage{color}
+\usepackage{xcolor}
+\definecolor{EIT}{rgb}{0.498039,0.8,0.188235}
+\definecolor{GSE}{rgb}{0.952941,0.439216,0.0784314}
+\definecolor{INF}{rgb}{0.00392157,0.407843,0.709804}
+\definecolor{MATH}{rgb}{0.819608,0.188235,0.34902}
+\definecolor{MB}{rgb}{0,0.670588,0.933333}
+\definecolor{MED}{rgb}{0.0627451,0.180392,0.341176}
+\definecolor{NAT}{rgb}{0.2,0.709804,0.247059}
+\definecolor{OVGU}{rgb}{0.454902,0,0.219608}
+\definecolor{VST}{rgb}{0.54902,0.0901961,0.560784}
+\definecolor{WW}{rgb}{0.341176,0.521569,0.611765}
+\usecolortheme[named=\docfac]{structure}
+%
+\beamertemplatenavigationsymbolsempty	% Slices without navigation symbols.

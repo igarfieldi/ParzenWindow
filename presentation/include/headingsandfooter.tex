@@ -1,0 +1,34 @@
+\setbeamertemplate{headline}% Headings
+{
+	\hspace*{0.02\textwidth}
+	\begin{minipage}[m]{0.3\textwidth}
+		\vspace*{3ex}
+		\includegraphics[height=8mm]{include/logos/\docfac /university_token}
+	\end{minipage}
+	\begin{minipage}[m]{0.45\textwidth}
+		\vspace*{3ex}
+		\doctitle ~- \docsubtitle
+	\end{minipage}
+	\hfill
+	\begin{minipage}[m]{0.14\textwidth}
+		\vspace*{3ex}
+		| Folie: \hfill \insertframenumber ~ / \inserttotalframenumber
+		\hspace*{0.1\textwidth}
+	\end{minipage}
+	\color{\docfac }
+	\rule{\paperwidth}{1pt}
+}
+%
+%
+%
+\setbeamertemplate{footline} % Footer
+{
+	\color{\docfac }
+	\rule{\paperwidth}{1pt}
+	\color{black}
+	\begin{minipage}[c]{\textwidth}
+		\vspace*{1ex}
+		\hspace*{0.02\textwidth} \docauthor \hfill \docdate \hspace{0.02\textwidth}
+		\vspace*{2ex}
+	\end{minipage}
+}
