@@ -24,7 +24,7 @@
 *.mtc1
 *.nav
 *.out
-*.pdf
+presentation/*.pdf
 *.run.xml
 *.snm
 *.synctex.gz
