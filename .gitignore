@@ -1,3 +1,4 @@
+.idea
 *.aux
 *.bcf
 *.bib
@@ -23,7 +24,8 @@
 *.mtc1
 *.nav
 *.out
-#*.pdf
+*.pdf
 *.run.xml
 *.snm
 *.synctex.gz
+Würde presentation/bibliography/ löschen
