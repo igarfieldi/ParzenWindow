@@ -28,4 +28,4 @@ presentation/*.pdf
 *.run.xml
 *.snm
 *.synctex.gz
-Würde presentation/bibliography/ löschen
+octave-implementation/octave-workspace
