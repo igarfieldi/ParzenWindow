@@ -23,7 +23,7 @@ class KernelDensityEstimator:
         for i in range(len(labels)):
             self.trainingFeatures[labels[i]].append(instances[i]);
 
-    def classify(self, instances):
+    def classify(self, instances, bandwidth, kernel, bandwidthEstimator):
         """
         Computes the class probabilities for a given set of instances.
         The probabilities will be returned as a matrix with each class and instance combination.
@@ -34,7 +34,6 @@ class KernelDensityEstimator:
         """
         priors = [0] * len(self.trainingFeatures);
         probabilities = [[0 for x in range(len(priors))] for y in range(len(instances))];
-        print(probabilities);
 
         # For all class labels estimate the prior of the class
         for i in range(len(self.trainingFeatures)):
@@ -47,7 +46,7 @@ class KernelDensityEstimator:
             # Then estimate the kernel density based on the stored instances with that label
             # TODO: variable kernel, incorporate bandwidth!
             for j in range(len(self.trainingFeatures)):
-                densities[j] = estimateKernelDensity(instances[i], self.trainingFeatures[j], gaussKernel, 0);
+                densities[j] = estimateKernelDensity(instances[i], self.trainingFeatures[j], kernel, bandwidthEstimator);
 
             # Compute probabilities as product of estimated prior and density
             for j in range(len(densities)):
@@ -62,7 +61,7 @@ def kde(data):
     len = len(data)
     return 0
 
-def estimateKernelDensity(instance, samples, kernel, bandwidth):
+def estimateKernelDensity(instance, samples, kernel, bandwidthEstimator):
     """
     Returns the multivariate kernel density estimation for the given instance.
     The covariance for the kernel is estimated from the samples.
@@ -75,12 +74,13 @@ def estimateKernelDensity(instance, samples, kernel, bandwidth):
 
     # Get the covariance matrix from the samples
     cov = np.cov(samples, None, False);
+    bandwidth = bandwidthEstimator(samples, cov, kernel);
 
     density = 0;
 
     # Normal density estimation: for every sample compute kernel and sum up
     for i in range(0, np.shape(samples)[0]):
-        density += kernel(instance - samples[i], cov);
+        density += kernel(np.dot(np.linalg.inv(bandwidth), instance - samples[i]), cov) / np.linalg.det(bandwidth);
     density /= len(samples);
 
     return density;
@@ -89,6 +89,15 @@ def gaussKernel(x, cov):
     return np.exp(-0.5 * np.dot(np.dot(x, np.linalg.inv(cov)), x.transpose())) /\
            math.sqrt(math.pow(2.0*math.pi, x.size) * np.linalg.det(cov));
 
+def estimateBandwidthSilvermanGauss(samples, cov, kernel):
+    d = cov.shape[0];
+    n = len(samples);
+    bandwidth = np.zeros(cov.shape);
+
+    for i in range(d):
+        bandwidth[i][i] = math.pow(4.0/(d + 2.0), 1.0/(d+4.0)) * math.pow(n, -1.0/(d+4.0)) * cov[i][i];
+
+    return bandwidth;
 
 trainingData = [np.array([0, 0]),
                 np.array([0, 1]),
@@ -101,4 +110,4 @@ testData = [np.array([0, 0]), np.array([0.5, 0.5]), np.array([1, 1])];
 
 estimator = KernelDensityEstimator(2);
 estimator.addTrainingInstances(trainingData, trainingLabels);
-print(estimator.classify(testData));
+print(estimator.classify(testData, np.array([[1, 0], [0, 1]]), gaussKernel, estimateBandwidthSilvermanGauss));
