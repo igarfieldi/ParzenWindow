@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import sqrtm
 import math
 
 class KernelDensityEstimator:
@@ -75,12 +76,14 @@ def estimateKernelDensity(instance, samples, kernel, bandwidthEstimator):
     # Get the covariance matrix from the samples
     cov = np.cov(samples, None, False);
     bandwidth = bandwidthEstimator(samples, cov, kernel);
+    bandwidthInvSqrt = sqrtm(np.linalg.inv(bandwidth));
+    bandwidthDet = np.linalg.det(bandwidthInvSqrt);
 
     density = 0;
 
     # Normal density estimation: for every sample compute kernel and sum up
     for i in range(0, np.shape(samples)[0]):
-        density += kernel(np.dot(np.linalg.inv(bandwidth), instance - samples[i]), cov) / np.linalg.det(bandwidth);
+        density += kernel(np.dot(bandwidthInvSqrt, instance - samples[i]), cov) * bandwidthDet;
     density /= len(samples);
 
     return density;
