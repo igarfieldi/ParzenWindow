@@ -33,9 +33,5 @@ class ArffWrapper:
         trainingLabels = np.array(trainingLabels);
         return trainingLabels;
 
-myArff = ArffWrapper('testdata/iris-testdata.arff');
-print myArff.meta.names();
-print myArff.meta.types();
-print myArff.data;
-print myArff.trainingLabels();
-print myArff.trainingData();
+    def labelCount(self):
+        return len(set(self.trainingLabels()));

@@ -1,6 +1,10 @@
 import numpy as np
 from scipy.linalg import sqrtm
 import math
+import functools
+import scipy.stats as st
+from arffwrpr import ArffWrapper
+from mcmc import metropolisHastingsSampling
 
 class KernelDensityEstimator:
     def __init__(self, classes):
@@ -102,15 +106,26 @@ def estimateBandwidthSilvermanGauss(samples, cov, kernel):
 
     return bandwidth;
 
-trainingData = [np.array([0, 0]),
-                np.array([0, 1]),
-                np.array([1, 0]),
-                np.array([1, 0.5]),
-                np.array([0.5, 1]),
-                np.array([1, 1])];
-trainingLabels = [0, 0, 0, 1, 1, 1];
-testData = [np.array([0, 0]), np.array([0.5, 0.5]), np.array([1, 1])];
+testFile = ArffWrapper('testdata/iris-testdata.arff');
 
-estimator = KernelDensityEstimator(2);
-estimator.addTrainingInstances(trainingData, trainingLabels);
-print(estimator.classify(testData, np.array([[1, 0], [0, 1]]), gaussKernel, estimateBandwidthSilvermanGauss));
+estimator = KernelDensityEstimator(testFile.labelCount());
+estimator.addTrainingInstances(testFile.trainingData(), testFile.trainingLabels());
+#print(estimator.classify([testFile.trainingData()[15]], np.array([[1, 0], [0, 1]]), gaussKernel, estimateBandwidthSilvermanGauss));
+
+
+# Test for MH-sampling
+n = 10000;
+proposedSampler = lambda theta_p: theta_p + np.random.normal(0, 1, len(theta_p));
+proposed = lambda theta, theta_p: gaussKernel(theta, np.array([[1, 0], [0, 1]]));
+target = functools.partial(gaussKernel, cov=np.array([[1, 0], [0, 1]]));
+
+samples, acceptance = metropolisHastingsSampling(np.array([0, 0]), n, target, proposed, proposedSampler);
+samples = samples[n/2:];
+print(acceptance)
+# Is this equivalent to the posterior mean??
+print(sum(samples) / float(len(samples)));
+# Because this has some weird values!
+sum = 0.0
+for i in range(len(samples)):
+    sum += samples[i]*target(samples[i]);
+print(sum);
