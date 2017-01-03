@@ -118,42 +118,21 @@ class ParzenWindowClassifier:
         return probabilities
 
 
+from sckde import SelfConsistentKDE
 
 testFile = ArffWrapper('testdata/iris-testdata.arff');
 
-kernel = GaussKernel(np.cov(testFile.trainingData(), None, False));
-bandwidthEstimator = SilvermanBandwidthEstimator(np.cov(testFile.trainingData(), None, False))
+data = np.array([[-0.5, 0.25, 0.5, -0.25, 0, -0.25, 0.5],
+                 [-1.5, 1.25, 1.5, -1.25, 0, -1.25, 1.5]])
+
+# TODO: fix wrong transposition!
+selfConsistent = SelfConsistentKDE(testFile.trainingData().transpose(), 1)
+print(selfConsistent.phiSC)
 
 priors = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
-t = McMcBandwidthEstimator(0.25, priors, 200)
-#kde = KernelDensityEstimator(kernel)
-#kde.addSamples(testFile.trainingData())
-#print(t.estimateBandwidth(kde))
-
-classifier = ParzenWindowClassifier(kernel, testFile.labelCount())
+# TODO: bandwidth estimate must not be below zero!
+classifier = ParzenWindowClassifier(GaussKernel(np.cov(testFile.trainingData(), None, False)), testFile.labelCount())
 classifier.addTrainingInstances(testFile.trainingData(), testFile.trainingLabels())
-classifier.estimateBandwidths(t)
+classifier.estimateBandwidths(McMcBandwidthEstimator(0.25, priors, 200))
 print(classifier.classify([testFile.trainingData()[15]]))
-
-#estimator = ParzenWindowClassifier(testFile.labelCount());
-#estimator.addTrainingInstances(testFile.trainingData(), testFile.trainingLabels());
-#print(estimator.classify([testFile.trainingData()[15]], np.array([[1, 0], [0, 1]]), gaussKernel, estimateBandwidthSilvermanGauss));
-
-
-# Test for MH-sampling
-#n = 10000;
-#proposedSampler = lambda theta_p: theta_p + np.random.normal(0, 1, len(theta_p));
-#proposed = lambda theta, theta_p: gaussKernel(theta, np.array([[1, 0], [0, 1]]));
-#target = functools.partial(gaussKernel, cov=np.array([[1, 0], [0, 1]]));
-
-#samples, acceptance = metropolisHastingsSampling(np.array([0, 0]), n, target, proposed, proposedSampler);
-#samples = samples[n/2:];
-#print(acceptance)
-# Is this equivalent to the posterior mean??
-#print(sum(samples) / float(len(samples)));
-# Because this has some weird values!
-#sum = 0.0
-#for i in range(len(samples)):
-#    sum += samples[i]*target(samples[i]);
-#print(sum);
