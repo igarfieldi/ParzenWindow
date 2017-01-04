@@ -126,13 +126,13 @@ data = np.array([[-0.5, 0.25, 0.5, -0.25, 0, -0.25, 0.5],
                  [-1.5, 1.25, 1.5, -1.25, 0, -1.25, 1.5]])
 
 # TODO: fix wrong transposition!
-selfConsistent = SelfConsistentKDE(testFile.trainingData().transpose(), 1)
-print(selfConsistent.phiSC)
+#selfConsistent = SelfConsistentKDE(testFile.trainingData().transpose(), 1)
+#print(selfConsistent.phiSC)
 
 priors = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
 # TODO: bandwidth estimate must not be below zero!
 classifier = ParzenWindowClassifier(GaussKernel(np.cov(testFile.trainingData(), None, False)), testFile.labelCount())
 classifier.addTrainingInstances(testFile.trainingData(), testFile.trainingLabels())
-classifier.estimateBandwidths(McMcBandwidthEstimator(0.25, priors, 200))
+classifier.estimateBandwidths(McMcBandwidthEstimator(0.25, priors, 4.0, 1000))
 print(classifier.classify([testFile.trainingData()[15]]))

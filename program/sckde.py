@@ -118,3 +118,8 @@ class SelfConsistentKDE:
         self.pdf /= np.prod((self.xMax - self.xMin) / math.pi)
 
         # TODO: shift it to positive values only!
+
+    def estimateDensity(self, instance):
+        deltaT = np.array([freqGrid[2] - freqGrid[1] for freqGrid in self.frequencyGrids])
+        estimate = fft.fftshift(fft.fftn(fft.ifftshift(self.phiSC)).real) * np.prod(deltaT) * (1. / (
+        2 * math.pi)) ** self.dims

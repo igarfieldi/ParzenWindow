@@ -31,16 +31,16 @@ def estimateLikelihood(kde, choleskyBandwidth):
     return likelihood
 
 class McMcBandwidthEstimator:
-    def __init__(self, shape, priors, iterations=2000):
+    def __init__(self, shape, priors, expLambda=5.0, iterations=2000):
         self.shape = shape
         self.priors = priors
         self.iterations = iterations
         # Proposed distribution: will be used in Metropolis-Hastings; for now leave as multivariate gauss
-        # TODO: use better distribution with higher acceptance rate! (beta distribution or smth?)
-        # TODO: it also has to keep the bandwidth matrix positive-definite!
-        self.proposed = lambda theta, theta_p: GaussKernel(np.identity(len(theta[np.tril_indices(len(theta))]))).eval(theta[np.tril_indices(len(theta))])
+        # TODO: what's better; discarding the samples out-of-bounds or using independence sampling?
+        #self.proposed = lambda theta, theta_p: GaussKernel(np.identity(len(theta[np.tril_indices(len(theta))]))).eval(theta[np.tril_indices(len(theta))])
+        self.proposed = lambda theta, theta_p: np.prod(expLambda * np.exp(-expLambda * theta[np.tril_indices(len(theta))]))
         # Sampler for the proposed distribution (generates new samples for the algorithm)
-        self.proposedSampler = lambda theta_p: theta_p + np.random.normal(0, 1, (len(theta_p), len(theta_p))) * np.tril(np.ones(theta_p.shape))
+        self.proposedSampler = lambda theta_p: np.random.exponential(expLambda, (len(theta_p), len(theta_p))) * np.tril(np.ones(theta_p.shape))
 
     def estimateBandwidth(self, kde):
         # Target function (only proportional to what we really have as a distribution):

@@ -22,7 +22,7 @@ def metropolisHastingsSampling(parameters, iterations, target, proposed, propose
         parameters_p = proposedSampler(parameters);
         # Compute acceptance probability (for explanation of formula see Metropolis-Hastings algorithm)
         rho = min(1, target(parameters_p) * proposed(parameters, parameters_p) /
-                  (target(parameters) * proposed(parameters, parameters_p)));
+                  (target(parameters) * proposed(parameters_p, parameters)));
 
         # If we draw lower than acceptance we accept, else discard the sample
         u = np.random.uniform();
