@@ -9,13 +9,13 @@ def metropolisHastingsSampling(parameters, iterations, target, proposed, propose
     :param target: target function with proportional distribution to posterior
     :param proposed: proposed distribution to sample from
     :param step: distribution to draw step size from
-    :return: list of samples for parameters (it is wise to discard an initial percentage!), acceptance rate of samples
+    :return: list of samples for parameters (it is wise to discard an initial percentage!), number of accepted samples
     """
     samples = [np.zeros(len(parameters))] * (iterations + 1);
     samples[0] = parameters;
 
     # Tracks the number of accepted samples
-    acceptance = 0;
+    accepted = 0;
 
     for i in range(iterations):
         # Get new proposed sample from sampler
@@ -28,10 +28,10 @@ def metropolisHastingsSampling(parameters, iterations, target, proposed, propose
         u = np.random.uniform();
         if u < rho:
             parameters = parameters_p;
-            acceptance += 1;
+            accepted += 1;
 
         # Regardless of whether we accepted the sample or not, the current sample point still counts as an element
         # in the resulting markov chain
         samples[i+1] = parameters;
 
-    return samples, acceptance / float(iterations);
+    return samples, accepted;

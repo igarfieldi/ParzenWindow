@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import math
 from kernel import GaussKernel
 from mcmc import metropolisHastingsSampling
@@ -31,35 +32,43 @@ def estimateLikelihood(kde, choleskyBandwidth):
     return likelihood
 
 class McMcBandwidthEstimator:
-    def __init__(self, shape, priors, expLambda=5.0, iterations=2000):
+    def __init__(self, dims, shape=1, priors=None, iterations=2500, burnIn=500, beVerbose=False):
         self.shape = shape
-        self.priors = priors
-        self.iterations = iterations
+        if priors is None:
+            self.priors = np.identity(dims, dtype=np.float64)
+        else:
+            if np.shape(priors) != (dims, dims):
+                raise ValueError('The priors must have the same dimensionality as the bandwidth!')
+            else:
+                self.priors = priors
+        self.iterations = max(1, iterations)
+        self.burnIn = min(self.iterations, burnIn)
+        self.beVerbose = beVerbose
+
         # Proposed distribution: will be used in Metropolis-Hastings; for now leave as multivariate gauss
         # TODO: what's better; discarding the samples out-of-bounds or using independence sampling?
-        #self.proposed = lambda theta, theta_p: GaussKernel(np.identity(len(theta[np.tril_indices(len(theta))]))).eval(theta[np.tril_indices(len(theta))])
-        self.proposed = lambda theta, theta_p: np.prod(expLambda * np.exp(-expLambda * theta[np.tril_indices(len(theta))]))
+        self.proposed = lambda theta, theta_p: GaussKernel(np.identity(len(theta[np.tril_indices(len(theta))]))).eval(theta[np.tril_indices(len(theta))])
         # Sampler for the proposed distribution (generates new samples for the algorithm)
-        self.proposedSampler = lambda theta_p: np.random.exponential(expLambda, (len(theta_p), len(theta_p))) * np.tril(np.ones(theta_p.shape))
+        self.proposedSampler = lambda theta_p: theta_p + np.random.normal(0, 1, (len(theta_p), len(theta_p)))* np.tril(np.ones(theta_p.shape))
 
     def estimateBandwidth(self, kde):
         # Target function (only proportional to what we really have as a distribution):
         # This is the product of the prior and the likelihood (see the paper for more detailed explanation)
         target = lambda theta: estimatePrior(theta, self.shape) * estimateLikelihood(kde, theta)
 
-        bandwidths, acceptance = metropolisHastingsSampling(self.priors, self.iterations, target, self.proposed,
+        bandwidths, accepted = metropolisHastingsSampling(self.priors, self.iterations, target, self.proposed,
                                                 self.proposedSampler)
 
         optimalBandwidth = np.zeros(self.priors.shape)
 
-        # Attempt at computing the posterior mean
-        # TODO: I'm pretty sure this is wrong...
-        for b in bandwidths[self.iterations/2:]:
-            optimalBandwidth += b * target(b)
+        # Attempt at computing the ergodic average
+        for b in bandwidths[self.burnIn:]:
+            optimalBandwidth += b
+        optimalBandwidth /= float(self.iterations - self.burnIn)
 
-        print(acceptance)
-        print(optimalBandwidth)
-        print(np.dot(optimalBandwidth, optimalBandwidth.transpose()))
+        if self.beVerbose:
+            print('Acceptance: {} out of {} ({}%)').format(accepted, self.iterations, 100.0 * accepted / float(self.iterations))
+            print('Optimal bandwidth:\n{}').format(np.dot(optimalBandwidth, optimalBandwidth.transpose()))
 
         return optimalBandwidth
 
@@ -78,6 +87,8 @@ class SilvermanBandwidthEstimator:
         """
         d = self.cov.shape[0]
         n = len(kde.getSamples())
+
+        print(d, n)
         bandwidth = np.zeros(self.cov.shape)
 
         for i in range(d):

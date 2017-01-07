@@ -35,3 +35,6 @@ class ArffWrapper:
 
     def labelCount(self):
         return len(set(self.trainingLabels()));
+
+    def dimensions(self):
+        return np.shape(self.trainingData())[1]

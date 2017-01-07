@@ -21,8 +21,8 @@ class KernelDensityEstimator:
         self.samples.append(sample)
 
     def addSamples(self, samples):
-        for i in samples:
-            self.samples.append(i)
+        for sample in samples:
+            self.samples.append(sample)
 
     def getSamples(self):
         return self.samples
@@ -42,6 +42,9 @@ class KernelDensityEstimator:
 
     def estimateDensity(self, instance, choleskyBandwidth):
         bandwidthDet = np.linalg.det(choleskyBandwidth)
+
+        if len(self.samples) == 0:
+            return 0
 
         density = 0
 
@@ -117,22 +120,32 @@ class ParzenWindowClassifier:
 
         return probabilities
 
-
 from sckde import SelfConsistentKDE
 
 testFile = ArffWrapper('testdata/iris-testdata.arff');
 
-data = np.array([[-0.5, 0.25, 0.5, -0.25, 0, -0.25, 0.5],
-                 [-1.5, 1.25, 1.5, -1.25, 0, -1.25, 1.5]])
+training = np.random.permutation(len(testFile.trainingData()))
+test = training[:len(training)/2]
+training = training[len(training)/2+1:]
 
 # TODO: fix wrong transposition!
 #selfConsistent = SelfConsistentKDE(testFile.trainingData().transpose(), 1)
 #print(selfConsistent.phiSC)
 
-priors = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
 # TODO: bandwidth estimate must not be below zero!
-classifier = ParzenWindowClassifier(GaussKernel(np.cov(testFile.trainingData(), None, False)), testFile.labelCount())
-classifier.addTrainingInstances(testFile.trainingData(), testFile.trainingLabels())
-classifier.estimateBandwidths(McMcBandwidthEstimator(0.25, priors, 4.0, 1000))
-print(classifier.classify([testFile.trainingData()[15]]))
+classifier = ParzenWindowClassifier(GaussKernel(np.cov(testFile.trainingData()[training], rowvar=False)), testFile.labelCount())
+classifier.addTrainingInstances(testFile.trainingData()[training], testFile.trainingLabels()[training])
+classifier.estimateBandwidths(McMcBandwidthEstimator(dims=testFile.dimensions(), beVerbose=True))
+#classifier.estimateBandwidths(SilvermanBandwidthEstimator(np.cov(testFile.trainingData()[training], rowvar=False)))
+
+acc = 0
+total = 0
+
+for i in range(len(test)):
+    probs = classifier.classify([testFile.trainingData()[test[i]]])
+
+    if(probs.index(max(probs)) == testFile.trainingLabels()[test[i]]):
+        acc += 1
+    total += 1
+
+print(acc / float(total))
