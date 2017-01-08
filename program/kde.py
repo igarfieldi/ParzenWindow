@@ -20,7 +20,7 @@ from sklearn.metrics import accuracy_score
 # trainingLabels:     numpy vector of the training datas labels; one column of numrows integers
 # testData:           numpy matrix of the test data; numrows instances of numcolumns variables
 # validationData:     numpy matrix of the validation data; numrows instances of numcolumns variables
-# kdeKernel:             kernel to use, integer, 0 = multivariate gauss, 1 = multiplicative Epanechnikov,
+# kdeKernel:          kernel to use, integer, 0 = multivariate Gauss, 1 = multiplicative Epanechnikov,
 #                     2 = multiplicative Picard
 # bandwidthEstimator: bandwidth estimator to use, integer, 0 = Markov Chain, 1 = Silverman
 # priorsShape:        parameter controlling the shape of prior bandwidth distribution, positive real scalar
@@ -41,6 +41,9 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
     # Do dimensions of the data sets correspond?
     if trainingData.shape[1] != validationData.shape[1] or testData.shape[1] != validationData.shape[1]:
         return "Training data, test data and validation data must have the same dimensions!"
+    # Only three kernels are valid
+    if kdeKernel != 0 and kdeKernel != 1 and kdeKernel != 2 :
+        return "kdeKernel must be one integer in {0,1,2}!"
     # Only two estimators are valid
     if bandwidthEstimator != 0 and bandwidthEstimator != 1:
         return "bandwidthEstimator must be one integer in {0,1}!"
@@ -136,7 +139,6 @@ class KernelDensityEstimator:
 class ParzenWindowClassifier:
     def __init__(self, kernel, classes):
         self.estimators = []
-        # TODO: different kernels for different classes!
         for i in range(classes):
             self.estimators.append(KernelDensityEstimator(kernel))
 
