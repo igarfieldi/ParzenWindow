@@ -5,12 +5,10 @@
 
 from time import time
 import numpy as np
-from kernel import GaussKernel
+import kernel as kernel
 from bandwidth import SilvermanBandwidthEstimator
 from bandwidth import McMcBandwidthEstimator
 from sklearn.metrics import accuracy_score
-from arffwrpr import ArffWrapper
-import sys
 
 # This function applies the VFDT algorithm on data. Inserted data is expected to be discretized (see trainingData
 # parameter description). The VFDT algorithm is applied on training data and evaluation data. The classification of the
@@ -22,11 +20,15 @@ import sys
 # trainingLabels:     numpy vector of the training datas labels; one column of numrows integers
 # testData:           numpy matrix of the test data; numrows instances of numcolumns variables
 # validationData:     numpy matrix of the validation data; numrows instances of numcolumns variables
+# kdeKernel:             kernel to use, integer, 0 = multivariate gauss, 1 = multiplicative Epanechnikov,
+#                     2 = multiplicative Picard
 # bandwidthEstimator: bandwidth estimator to use, integer, 0 = Markov Chain, 1 = Silverman
 # priorsShape:        parameter controlling the shape of prior bandwidth distribution, positive real scalar
 #
 # return:   returns 3 lists of class labels for training, test and validation data respectively
-def main( trainingData, trainingLabels, testData, validationData, bandwidthEstimator = 1, priorsShape=1 ):
+
+
+def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, bandwidthEstimator=1, priorsShape=1):
     # Does training data exist?
     if trainingData.shape[0] == 0 or trainingData.shape[1] <= 1:
         return "No training data is given!"
@@ -47,21 +49,25 @@ def main( trainingData, trainingLabels, testData, validationData, bandwidthEstim
         return "priorsShape must be > 0 !"
 
     # prepare the kernel for the kernel density estimation
-    kernel = GaussKernel( np.cov( trainingData, rowvar=False ) );
+    if kdeKernel == 0:
+        kernelFunc = kernel.GaussKernel( np.cov(trainingData, rowvar=False) )
+    elif kdeKernel == 1:
+        kernelFunc = kernel.EpanechnikovKernel( np.shape(trainingData)[1] )
+    else:
+        kernelFunc = kernel.PicardKernel( np.shape(trainingData)[1] )
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
-    classifier = ParzenWindowClassifier( kernel, len( set( trainingLabels ) ) );
+    classifier = ParzenWindowClassifier( kernelFunc, len(set(trainingLabels)) )
+
     # add the training data to the classifier
     classifier.addTrainingInstances( trainingData, trainingLabels );
 
     # use given bandwidth estimator for training
     if bandwidthEstimator == 0:
         # Monte Carlo Markov Chain bandwidth estimator needs number of variables and shape of the prior(s)
-        estimator = McMcBandwidthEstimator( dims=np.shape( trainingData )[1], shape=priorsShape );
+        classifier.estimateBandwidths( McMcBandwidthEstimator( dims=np.shape( trainingData )[1], shape=priorsShape ) );
     else:
         # Silverman bandwidth estimator needs covariance matrix of the data, rowvar controls transpose or not
-        estimator = SilvermanBandwidthEstimator( np.cov( trainingData, rowvar=False ) );
-    # estimate kernel bandwidths aka 'train the classifier'
-    classifier.estimateBandwidths( estimator );
+        classifier.estimateBandwidths( SilvermanBandwidthEstimator( np.cov( trainingData, rowvar=False ) ) );
 
     # classify training, test and validation data
     trainLabels = [];
@@ -192,24 +198,13 @@ class ParzenWindowClassifier:
 
         return probabilities
 
-def arffEmulator(trainingPath, testPath, validationPath, **kwargs):
-    trainingFile = ArffWrapper(trainingPath);
-    testFile = ArffWrapper(testPath);
-    validationFile = ArffWrapper(validationPath);
-
-    dataset = (trainingFile.trainingData(), trainingFile.trainingLabels(),
-               testFile.trainingData(), testFile.trainingLabels(),
-               validationFile.trainingData(), validationFile.trainingLabels())
-
-    return do_stuff(dataset, **kwargs)
-
 def do_stuff(dataset, *_, **kwargs):
     (training_data, training_label, test_data, test_label, validation_data, validation_label) = dataset
 
     t = time()
     (training_prediction, test_prediction, validation_prediction) = main(training_data, training_label,
                                                           test_data, validation_data,
-                                                          kwargs['estimator'], kwargs['shape'])
+                                                          kwargs['kdeKernel'], kwargs['estimator'], kwargs['shape'])
 
     training_time = time() - t
     time_test = 0
@@ -230,20 +225,3 @@ def do_stuff(dataset, *_, **kwargs):
     print("Success!")
 
     return result
-
-if __name__ == '__main__':
-    args = sys.argv
-
-    estimator = 1
-    shape = 1.0
-
-    if(len(args) >= 5):
-        estimator = args[4]
-    if(len(args) >= 6):
-        shape = args[5]
-
-    result = arffEmulator(args[1], args[2], args[3], estimator=estimator, shape=shape)
-
-    print('Test score: {}\nValidation score: {}\n{}').format(result['score_test'],
-                                                             result['score_validation'],
-                                                             result['message'])

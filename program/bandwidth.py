@@ -31,6 +31,10 @@ def estimateLikelihood(kde, choleskyBandwidth):
 
     return likelihood
 
+def randomWalk(theta_p):
+    nextSample = theta_p + np.random.normal(0, 1, (len(theta_p), len(theta_p))) * np.tril(np.ones(theta_p.shape))
+    return max(0, nextSample)
+
 class McMcBandwidthEstimator:
     def __init__(self, dims, shape=1, priors=None, iterations=2500, burnIn=500, beVerbose=False):
         self.shape = shape
