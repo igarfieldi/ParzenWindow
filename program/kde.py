@@ -9,6 +9,7 @@ from kernel import GaussKernel
 from bandwidth import SilvermanBandwidthEstimator
 from bandwidth import McMcBandwidthEstimator
 from sckde import SelfConsistentKDE
+import sys
 
 # This function applies the VFDT algorithm on data. Inserted data is expected to be discretized (see trainingData
 # parameter description). The VFDT algorithm is applied on training data and evaluation data. The classification of the
@@ -58,7 +59,6 @@ def main( pathTrainingData, pathTestData, pathValidationData, bandwidthEstimator
     for instance in validationFile.trainingData():
         probs = classifier.classify( [instance] );
         validationLabels.append( probs.index( max(probs) ) );
-
 
     return trainLabels, testLabels, validationLabels
 
@@ -172,3 +172,13 @@ class ParzenWindowClassifier:
             probabilities[i] /= sum(probabilities[i])
 
         return probabilities
+
+if __name__ == '__main__':
+    args = sys.argv
+    bandwidthEstimator = 1
+    shape = 1
+    if(len(args) >= 5):
+        bandwidthEstimator = args[4]
+    if(len(args) >= 6):
+        shape = args[5]
+    print(main(args[1], args[2], args[3], bandwidthEstimator, shape))

@@ -88,7 +88,6 @@ class SilvermanBandwidthEstimator:
         d = self.cov.shape[0]
         n = len(kde.getSamples())
 
-        print(d, n)
         bandwidth = np.zeros(self.cov.shape)
 
         for i in range(d):
