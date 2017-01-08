@@ -23,26 +23,43 @@ import sys
 # testData:           numpy matrix of the test data; numrows instances of numcolumns variables
 # validationData:     numpy matrix of the validation data; numrows instances of numcolumns variables
 # bandwidthEstimator: bandwidth estimator to use, integer, 0 = Markov Chain, 1 = Silverman
-# priorsShape:        parameter controlling the shape of prior bandwidth distribution in case of MC bandwidth estimator
+# priorsShape:        parameter controlling the shape of prior bandwidth distribution, positive real scalar
 #
 # return:   returns 3 lists of class labels for training, test and validation data respectively
-def main(trainingData, trainingLabels, testData, validationData, bandwidthEstimator = 1, priorsShape=1):
-    #Todo: check all parameters for plausibility
+def main( trainingData, trainingLabels, testData, validationData, bandwidthEstimator = 1, priorsShape=1 ):
+    # Does training data exist?
+    if trainingData.shape[0] == 0 or trainingData.shape[1] <= 1:
+        return "No training data is given!"
+    # Does test data exist?
+    if testData.shape[0] == 0 or testData.shape[1] == 0:
+        return "No test data is given!"
+    # Does validation data exist?
+    if validationData.shape[0] == 0 or validationData.shape[1] == 0:
+        return "No validation data is given!"
+    # Do dimensions of the data sets correspond?
+    if trainingData.shape[1] != validationData.shape[1] or testData.shape[1] != validationData.shape[1]:
+        return "Training data, test data and validation data must have the same dimensions!"
+    # Only two estimators are valid
+    if bandwidthEstimator != 0 and bandwidthEstimator != 1:
+        return "bandwidthEstimator must be one integer in {0,1}!"
+    # Priors shape is a positive real number
+    if priorsShape <= 0:
+        return "priorsShape must be > 0 !"
 
     # prepare the kernel for the kernel density estimation
-    kernel = GaussKernel(np.cov(trainingData, rowvar=False));
+    kernel = GaussKernel( np.cov( trainingData, rowvar=False ) );
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
-    classifier = ParzenWindowClassifier( kernel, len(set(trainingLabels)) )
+    classifier = ParzenWindowClassifier( kernel, len( set( trainingLabels ) ) );
     # add the training data to the classifier
-    classifier.addTrainingInstances(trainingData, trainingLabels);
+    classifier.addTrainingInstances( trainingData, trainingLabels );
 
     # use given bandwidth estimator for training
     if bandwidthEstimator == 0:
         # Monte Carlo Markov Chain bandwidth estimator needs number of variables and shape of the prior(s)
-        estimator = McMcBandwidthEstimator(dims=np.shape(trainingData)[1], shape=priorsShape)
+        estimator = McMcBandwidthEstimator( dims=np.shape( trainingData )[1], shape=priorsShape );
     else:
         # Silverman bandwidth estimator needs covariance matrix of the data, rowvar controls transpose or not
-        estimator = SilvermanBandwidthEstimator(np.cov(trainingData, rowvar=False));
+        estimator = SilvermanBandwidthEstimator( np.cov( trainingData, rowvar=False ) );
     # estimate kernel bandwidths aka 'train the classifier'
     classifier.estimateBandwidths( estimator );
 
