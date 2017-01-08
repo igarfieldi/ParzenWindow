@@ -1,13 +1,66 @@
+# In this project [TODO: input correct description]
+# is implemented by Florian Bethe and Angelika Ophagen.
+#
+# To use the algorithm just have a look at the main function of this python file.
+
 import numpy as np
-from scipy.linalg import sqrtm
-import math
-import functools
-import scipy.stats as st
 from arffwrpr import ArffWrapper
-from mcmc import metropolisHastingsSampling
 from kernel import GaussKernel
 from bandwidth import SilvermanBandwidthEstimator
 from bandwidth import McMcBandwidthEstimator
+from sckde import SelfConsistentKDE
+
+# This function applies the VFDT algorithm on data. Inserted data is expected to be discretized (see trainingData
+# parameter description). The VFDT algorithm is applied on training data and evaluation data. The classification of the
+# data given for evaluation is printed at standard out after classification is done.
+# One hint for the current frontend: Users should be aware of the discretization that is applied on the data before it
+# is handed over to this function.
+#
+# pathTrainingData:   path to an ARFF file containing the training data
+# pathTestData:       path to an ARFF file containing the test data
+# pathValidationData: path to an ARFF file containing the validation data
+# bandwidthEstimator: bandwidth estimator to use, integer, 0 = Markov Chain, 1 = Silverman
+# priorsShape:        parameter controlling the shape of prior bandwidth distribution in case of MC bandwidth estimator
+#
+# return:   returns a list of class labels for each instance in the ARFF file in the same ordering as in the ARFF file.
+def main( pathTrainingData, pathTestData, pathValidationData, bandwidthEstimator = 1, priorsShape=1 ):
+    #Todo: check all parameters for plausibility
+    trainingFile = ArffWrapper( pathTrainingData );
+    testFile = ArffWrapper( pathTestData );
+    validationFile = ArffWrapper( pathValidationData );
+
+    # prepare the kernel for the kernel density estimation
+    kernel = GaussKernel( np.cov( trainingFile.trainingData(), rowvar=False ) );
+    # prepare the classifier for the kernel density estimation
+    classifier = ParzenWindowClassifier( kernel, trainingFile.labelCount() );
+    # add the training data to the classifier
+    classifier.addTrainingInstances( trainingFile.trainingData(), trainingFile.trainingLabels() );
+
+    # use given bandwidth estimator
+    if bandwidthEstimator == 0:
+        estimator = McMcBandwidthEstimator( dims=trainingFile.dimensions(), shape=priorsShape );
+    else:
+        estimator = SilvermanBandwidthEstimator( np.cov( trainingFile.trainingData(), rowvar=False ) );
+    classifier.estimateBandwidths( estimator );
+
+    # classify training, test and validation data
+    trainLabels = [];
+    for instance in trainingFile.trainingData():
+        probs = classifier.classify( [instance] );
+        trainLabels.append( probs.index( max(probs) ) );
+
+    testLabels = [];
+    for instance in testFile.trainingData():
+        probs = classifier.classify( [instance] );
+        testLabels.append( probs.index( max(probs) ) );
+
+    validationLabels = [];
+    for instance in validationFile.trainingData():
+        probs = classifier.classify( [instance] );
+        validationLabels.append( probs.index( max(probs) ) );
+
+
+    return trainLabels, testLabels, validationLabels
 
 class KernelDensityEstimator:
     def __init__(self, kernel):
@@ -119,33 +172,3 @@ class ParzenWindowClassifier:
             probabilities[i] /= sum(probabilities[i])
 
         return probabilities
-
-from sckde import SelfConsistentKDE
-
-testFile = ArffWrapper('testdata/iris-testdata.arff');
-
-training = np.random.permutation(len(testFile.trainingData()))
-test = training[:len(training)/2]
-training = training[len(training)/2+1:]
-
-# TODO: fix wrong transposition!
-#selfConsistent = SelfConsistentKDE(testFile.trainingData().transpose(), 1)
-#print(selfConsistent.phiSC)
-
-# TODO: bandwidth estimate must not be below zero!
-classifier = ParzenWindowClassifier(GaussKernel(np.cov(testFile.trainingData()[training], rowvar=False)), testFile.labelCount())
-classifier.addTrainingInstances(testFile.trainingData()[training], testFile.trainingLabels()[training])
-classifier.estimateBandwidths(McMcBandwidthEstimator(dims=testFile.dimensions(), beVerbose=True))
-#classifier.estimateBandwidths(SilvermanBandwidthEstimator(np.cov(testFile.trainingData()[training], rowvar=False)))
-
-acc = 0
-total = 0
-
-for i in range(len(test)):
-    probs = classifier.classify([testFile.trainingData()[test[i]]])
-
-    if(probs.index(max(probs)) == testFile.trainingLabels()[test[i]]):
-        acc += 1
-    total += 1
-
-print(acc / float(total))
