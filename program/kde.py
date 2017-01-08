@@ -24,13 +24,13 @@ from sklearn.metrics import accuracy_score
 
 def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, bandwidthEstimator=1, priorsShape=1.0):
     # Does training data exist?
-    if trainingData.shape[0] == 0 or trainingData.shape[1] <= 1:
+    if trainingData.shape[0] == 0:
         raise ValueError("No training data is given!")
     # Does test data exist?
-    if testData.shape[0] == 0 or testData.shape[1] == 0:
+    if testData.shape[0] == 0:
         raise ValueError("No test data is given!")
     # Does validation data exist?
-    if validationData.shape[0] == 0 or validationData.shape[1] == 0:
+    if validationData.shape[0] == 0:
         raise ValueError("No validation data is given!")
     # Do dimensions of the data sets correspond?
     if trainingData.shape[1] != validationData.shape[1] or testData.shape[1] != validationData.shape[1]:
@@ -47,10 +47,13 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
 
     # prepare the kernel for the kernel density estimation
     if kdeKernel == 0:
+        # Gauss kernel needs covariance matrix of the data, rowvar controls transpose or not
         kernelFunc = kernel.GaussKernel( np.cov(trainingData, rowvar=False) )
     elif kdeKernel == 1:
+        # Epanechnikov kernel needs dimension of the data (number of variables)
         kernelFunc = kernel.EpanechnikovKernel( np.shape(trainingData)[1] )
     else:
+        # Picard kernel needs dimension of the data (number of variables)
         kernelFunc = kernel.PicardKernel( np.shape(trainingData)[1] )
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
     classifier = ParzenWindowClassifier( kernelFunc, len(set(trainingLabels)) )
