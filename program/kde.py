@@ -10,12 +10,6 @@ from bandwidth import SilvermanBandwidthEstimator
 from bandwidth import McMcBandwidthEstimator
 from sklearn.metrics import accuracy_score
 
-# This function applies the VFDT algorithm on data. Inserted data is expected to be discretized (see trainingData
-# parameter description). The VFDT algorithm is applied on training data and evaluation data. The classification of the
-# data given for evaluation is printed at standard out after classification is done.
-# One hint for the current frontend: Users should be aware of the discretization that is applied on the data before it
-# is handed over to this function.
-#
 # trainingData:       numpy matrix of the training data; numrows instances of numcolumns variables
 # trainingLabels:     numpy vector of the training datas labels; one column of numrows integers
 # testData:           numpy matrix of the test data; numrows instances of numcolumns variables
@@ -42,7 +36,7 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
     if trainingData.shape[1] != validationData.shape[1] or testData.shape[1] != validationData.shape[1]:
         return "Training data, test data and validation data must have the same dimensions!"
     # Only three kernels are valid
-    if kdeKernel != 0 and kdeKernel != 1 and kdeKernel != 2 :
+    if kdeKernel != 0 and kdeKernel != 1 and kdeKernel != 2:
         return "kdeKernel must be one integer in {0,1,2}!"
     # Only two estimators are valid
     if bandwidthEstimator != 0 and bandwidthEstimator != 1:
