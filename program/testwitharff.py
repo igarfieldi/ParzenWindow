@@ -21,11 +21,11 @@ if __name__ == '__main__':
     shape = 1.0
 
     if(len(args) >= 5):
-        kdeKernel = args[4]
+        kdeKernel = int(args[4])
     if(len(args) >= 6):
-        estimator = args[5]
+        estimator = int(args[5])
     if(len(args) >= 7):
-        shape = args[6]
+        shape = float(args[6])
 
     result = arffEmulator(args[1], args[2], args[3], kdeKernel=kdeKernel, estimator=estimator, shape=shape)
 

@@ -22,28 +22,28 @@ from sklearn.metrics import accuracy_score
 # return:   returns 3 lists of class labels for training, test and validation data respectively
 
 
-def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, bandwidthEstimator=1, priorsShape=1):
+def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, bandwidthEstimator=1, priorsShape=1.0):
     # Does training data exist?
     if trainingData.shape[0] == 0 or trainingData.shape[1] <= 1:
-        return "No training data is given!"
+        raise ValueError("No training data is given!")
     # Does test data exist?
     if testData.shape[0] == 0 or testData.shape[1] == 0:
-        return "No test data is given!"
+        raise ValueError("No test data is given!")
     # Does validation data exist?
     if validationData.shape[0] == 0 or validationData.shape[1] == 0:
-        return "No validation data is given!"
+        raise ValueError("No validation data is given!")
     # Do dimensions of the data sets correspond?
     if trainingData.shape[1] != validationData.shape[1] or testData.shape[1] != validationData.shape[1]:
-        return "Training data, test data and validation data must have the same dimensions!"
+        raise ValueError("Training data, test data and validation data must have the same dimensions!")
     # Only three kernels are valid
     if kdeKernel != 0 and kdeKernel != 1 and kdeKernel != 2:
-        return "kdeKernel must be one integer in {0,1,2}!"
+        raise ValueError("kdeKernel must be one integer in {0,1,2}!")
     # Only two estimators are valid
     if bandwidthEstimator != 0 and bandwidthEstimator != 1:
-        return "bandwidthEstimator must be one integer in {0,1}!"
+        raise ValueError("bandwidthEstimator must be one integer in {0,1}!")
     # Priors shape is a positive real number
     if priorsShape <= 0:
-        return "priorsShape must be > 0 !"
+        raise ValueError("priorsShape must be > 0 !")
 
     # prepare the kernel for the kernel density estimation
     if kdeKernel == 0:
@@ -218,6 +218,5 @@ def do_stuff(dataset, *_, **kwargs):
               'message': 'Training time: %2.3fms' % (training_time * 1000),
               'pictures': [],
               'success': True}
-    print("Success!")
 
     return result
