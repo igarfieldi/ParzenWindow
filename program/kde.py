@@ -3,10 +3,13 @@
 #
 # To use the algorithm just have a look at the main function of this python file.
 
+from time import time
 import numpy as np
 from kernel import GaussKernel
 from bandwidth import SilvermanBandwidthEstimator
 from bandwidth import McMcBandwidthEstimator
+from sklearn.metrics import accuracy_score
+from arffwrpr import ArffWrapper
 import sys
 
 # This function applies the VFDT algorithm on data. Inserted data is expected to be discretized (see trainingData
@@ -29,14 +32,14 @@ def main(trainingData, trainingLabels, testData, validationData, bandwidthEstima
     # prepare the kernel for the kernel density estimation
     kernel = GaussKernel(np.cov(trainingData, rowvar=False));
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
-    classifier = ParzenWindowClassifier( kernel, len(set(trainingLabels));
+    classifier = ParzenWindowClassifier( kernel, len(set(trainingLabels)) )
     # add the training data to the classifier
     classifier.addTrainingInstances(trainingData, trainingLabels);
 
     # use given bandwidth estimator for training
     if bandwidthEstimator == 0:
         # Monte Carlo Markov Chain bandwidth estimator needs number of variables and shape of the prior(s)
-        estimator = McMcBandwidthEstimator(dims=np.shape(trainingData)[1], shape=priorsShape);
+        estimator = McMcBandwidthEstimator(dims=np.shape(trainingData)[1], shape=priorsShape)
     else:
         # Silverman bandwidth estimator needs covariance matrix of the data, rowvar controls transpose or not
         estimator = SilvermanBandwidthEstimator(np.cov(trainingData, rowvar=False));
@@ -172,12 +175,58 @@ class ParzenWindowClassifier:
 
         return probabilities
 
+def arffEmulator(trainingPath, testPath, validationPath, **kwargs):
+    trainingFile = ArffWrapper(trainingPath);
+    testFile = ArffWrapper(testPath);
+    validationFile = ArffWrapper(validationPath);
+
+    dataset = (trainingFile.trainingData(), trainingFile.trainingLabels(),
+               testFile.trainingData(), testFile.trainingLabels(),
+               validationFile.trainingData(), validationFile.trainingLabels())
+
+    return do_stuff(dataset, **kwargs)
+
+def do_stuff(dataset, *_, **kwargs):
+    (training_data, training_label, test_data, test_label, validation_data, validation_label) = dataset
+
+    t = time()
+    (training_prediction, test_prediction, validation_prediction) = main(training_data, training_label,
+                                                          test_data, validation_data,
+                                                          kwargs['estimator'], kwargs['shape'])
+
+    training_time = time() - t
+    time_test = 0
+    time_validation = 0
+    score_test = accuracy_score(test_label, test_prediction)
+    score_validation = accuracy_score(validation_label, validation_prediction)
+
+    result = {'score_test': score_test,  # Kriegen Studis zu sehen
+              'score_validation': score_validation,  # kommt in die Highscore-Tabelle
+              'training_labels': training_prediction,
+              'test_labels': test_prediction,
+              'validation_labels': validation_prediction,
+              'extra_scores_test': {"time": "%2.3fms" % (time_test * 1000)},
+              'extra_scores_validation': {"time": "%2.3fms" % (time_validation * 1000)},
+              'message': 'Training time: %2.3fms' % (training_time * 1000),
+              'pictures': [],
+              'success': True}
+    print("Success!")
+
+    return result
+
 if __name__ == '__main__':
     args = sys.argv
-    bandwidthEstimator = 1
-    shape = 1
+
+    estimator = 1
+    shape = 1.0
+
     if(len(args) >= 5):
-        bandwidthEstimator = args[4]
+        estimator = args[4]
     if(len(args) >= 6):
         shape = args[5]
-    print(main(args[1], args[2], args[3], bandwidthEstimator, shape))
+
+    result = arffEmulator(args[1], args[2], args[3], estimator=estimator, shape=shape)
+
+    print('Test score: {}\nValidation score: {}\n{}').format(result['score_test'],
+                                                             result['score_validation'],
+                                                             result['message'])

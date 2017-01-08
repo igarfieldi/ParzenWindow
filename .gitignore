@@ -25,6 +25,7 @@
 *.nav
 *.out
 presentation/*.pdf
+.pyc
 *.run.xml
 *.snm
 *.synctex.gz
