@@ -1,5 +1,6 @@
-# In this project TODO: input correct description
+# In this project a Parzen Windows classifier with alternative plug-in kernels and bandwidth estimators
 # is implemented by Florian Bethe and Angelika Ophagen.
+# Todo: pre- and concise description with relevant sources
 #
 # To use the algorithm just have a look at the main function of this python file.
 
