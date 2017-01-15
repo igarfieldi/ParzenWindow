@@ -47,15 +47,15 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
         raise ValueError("priorsShape must be > 0 !")
 
     # prepare the kernel for the kernel density estimation
-    if kdeKernel == 0:
-        # Gauss kernel needs covariance matrix of the data, rowvar controls transpose or not
-        kernelFunc = kernel.GaussKernel( np.cov(trainingData, rowvar=False) )
+    if kdeKernel == 2:
+        # Picard kernel needs dimension of the data (number of variables)
+        kernelFunc = kernel.PicardKernel( np.shape(trainingData)[1] )
     elif kdeKernel == 1:
         # Epanechnikov kernel needs dimension of the data (number of variables)
         kernelFunc = kernel.EpanechnikovKernel( np.shape(trainingData)[1] )
     else:
-        # Picard kernel needs dimension of the data (number of variables)
-        kernelFunc = kernel.PicardKernel( np.shape(trainingData)[1] )
+        # Gauss kernel needs covariance matrix of the data, rowvar controls transpose or not
+        kernelFunc = kernel.GaussKernel(np.cov(trainingData, rowvar=False))
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
     classifier = ParzenWindowClassifier( kernelFunc, len(set(trainingLabels)) )
 
