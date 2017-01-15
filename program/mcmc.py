@@ -8,7 +8,7 @@ def metropolisHastingsSampling(parameters, iterations, target, proposed, propose
     :param iterations: number of iterations to perform
     :param target: target function with proportional distribution to posterior
     :param proposed: proposed distribution to sample from
-    :param step: distribution to draw step size from
+    :param proposedSampler: sampler for the proposed distribution (e.g. random walk function pointer)
     :return: list of samples for parameters (it is wise to discard an initial percentage!), number of accepted samples
     """
     samples = [np.zeros(len(parameters))] * (iterations + 1);
