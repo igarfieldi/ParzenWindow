@@ -72,17 +72,24 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
 
     # classify training, test and validation data
     trainLabels = [];
+    testLabels = [];
+    validationLabels = [];
+
+    print('Classifying training data ({} instances)'.format(len(trainingData)))
     for instance in trainingData:
+    	#trainLabels.append(0);
         probs = classifier.classify( [instance] );
         trainLabels.append( np.argmax( probs, 1 )[0] );
 
-    testLabels = [];
+    print('Classifying test data ({} instances)'.format(len(testData)))
     for instance in testData:
+    	#testLabels.append(0)
         probs = classifier.classify( [instance] );
         testLabels.append( np.argmax( probs, 1 )[0] );
 
-    validationLabels = [];
+    print('Classifying validation data ({} instances)'.format(len(validationData)))
     for instance in validationData:
+    	#validationLabels.append(0)
         probs = classifier.classify( [instance] );
         validationLabels.append( np.argmax( probs, 1 )[0] );
 
@@ -123,7 +130,7 @@ class KernelDensityEstimator:
         bandwidthDet = np.linalg.det(choleskyBandwidth)
 
         if len(self.samples) == 0:
-            return 0
+            raise ValueError("Zero samples for class!")
 
         density = 0
 
@@ -131,7 +138,6 @@ class KernelDensityEstimator:
         for i in range(0, np.shape(self.samples)[0]):
             density += self.kernel.eval(np.dot(choleskyBandwidth, instance - self.samples[i])) * bandwidthDet
         density /= len(self.samples)
-
         return density
 
 class ParzenWindowClassifier:
@@ -188,13 +194,16 @@ class ParzenWindowClassifier:
             # TODO: variable kernel, incorporate bandwidth!
             for j in range(len(self.estimators)):
                 densities[j] = self.estimators[j].estimateDensity(instances[i], self.bandwidths[j])
-
             # Compute probabilities as product of estimated prior and density
             for j in range(len(densities)):
                 probabilities[i][j] = priors[j]*densities[j]
 
             # Normalize probabilities
-            probabilities[i] /= sum(probabilities[i])
+            if(sum(probabilities[i]) == 0):
+                # Choose class with highest prior
+                probabilities[i][np.argmax(priors)] = 1.0
+            else:
+                probabilities[i] /= sum(probabilities[i])
 
         return probabilities
 
