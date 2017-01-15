@@ -5,7 +5,7 @@
 	
 	\textbf{Kerndichteschätzung:}
 	\begin{itemize}
-		\item Annahme: Daten wurden von 'Modell' generiert
+		\item Annahme: Daten wurden von Modell generiert
 		\item Gegeben Trainingsdaten: wie wahrscheinlich ist ein Datenpunkt?
 		\item $\hat{f}_h(x) = \frac{1}{nh}\sum_{i=1}^{n} K(\frac{x - x_i}{h})$
 		\item $K$ ist die Kernelfunktion (f\"ur gew\"ohnlich Gauss)
@@ -40,6 +40,7 @@
 	        		\item Nutze KDE zur Klassifikation
 	        		\item F\"ur jede Klasse separate KDE
 	        		\item $p(c | x) \propto \hat{f}_h^c(x) \cdot \theta_c$
+	        		\item Verschiedene Kernel pro Klasse m\"oglich
 	        \end{itemize}
 	    }
 	    \end{tabular}
