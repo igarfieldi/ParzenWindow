@@ -74,17 +74,17 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
     trainLabels = [];
     for instance in trainingData:
         probs = classifier.classify( [instance] );
-        trainLabels.append( probs.index( max(probs) ) );
+        trainLabels.append( np.argmax( probs, 1 )[0] );
 
     testLabels = [];
     for instance in testData:
         probs = classifier.classify( [instance] );
-        testLabels.append( probs.index( max(probs) ) );
+        testLabels.append( np.argmax( probs, 1 )[0] );
 
     validationLabels = [];
     for instance in validationData:
         probs = classifier.classify( [instance] );
-        validationLabels.append( probs.index( max(probs) ) );
+        validationLabels.append( np.argmax( probs, 1 )[0] );
 
     return trainLabels, testLabels, validationLabels
 
