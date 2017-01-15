@@ -33,18 +33,20 @@
 	\frametitle{Methoden}
 	
 	\textbf{Parzen-Window-Klassifikator:}
-	\begin{itemize}
-		\item Nutze KDE zur Klassifikation
-		\item F\"ur jede Klasse separate KDE
-		\item $p(c | x) \propto \hat{f}_h^c(x) \cdot \theta_c$
-	\end{itemize}
-		
-	\begin{figure}[p]
-		\centering
-		\includegraphics[trim = 0cm 6cm 0cm 5cm, clip = true, width = 0.6\textwidth]{figures/KDE3inst.pdf}
-		\caption{}
-		\label{fig:parzenwindow}
-	\end{figure}
+	\begin{tabular}{cl}  
+	    \begin{tabular}{l}
+	    \parbox{0.4\linewidth}{
+	        \begin{itemize}
+	        		\item Nutze KDE zur Klassifikation
+	        		\item F\"ur jede Klasse separate KDE
+	        		\item $p(c | x) \propto \hat{f}_h^c(x) \cdot \theta_c$
+	        \end{itemize}
+	    }
+	    \end{tabular}
+	    & \begin{tabular}{c}                                       
+ 	        \includegraphics[trim = 1cm 6cm 0cm 5cm, clip = true, width = 0.5\textwidth]{figures/KDE3inst.pdf} 
+ 	    \end{tabular} \\
+	\end{tabular}
 \end{frame}
 
 \begin{frame}
