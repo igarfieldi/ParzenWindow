@@ -24,7 +24,6 @@
 *.mtc1
 *.nav
 *.out
-presentation/*.pdf
 *.pyc
 *.run.xml
 *.snm
