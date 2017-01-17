@@ -7,7 +7,7 @@ class GaussKernel:
         self.cov = cov
 
     def eval(self, x):
-        return sp.multivariate_normal.pdf(x, cov=self.cov)
+        return sp.multivariate_normal.pdf(x, mean=np.zeros(x.shape), cov=self.cov)
 
 class EpanechnikovKernel:
     def __init__(self, dims):
