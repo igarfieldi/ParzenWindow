@@ -57,7 +57,7 @@ def main(trainingData, trainingLabels, testData, validationData, kdeKernel=0, ba
         # Gauss kernel needs covariance matrix of the data, rowvar controls transpose or not
         kernelFunc = kernel.GaussKernel(np.cov(trainingData, rowvar=False))
     # prepare the classifier for the kernel density estimation with kernel and the number of labels
-    classifier = ParzenWindowClassifier( kernelFunc, len(set(trainingLabels)) )
+    classifier = ParzenWindowClassifier( kernelFunc, np.amax( trainingLabels ) + 1 )
 
     # add the training data to the classifier
     classifier.addTrainingInstances( trainingData, trainingLabels );
